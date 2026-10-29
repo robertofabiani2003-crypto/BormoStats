@@ -1,0 +1,4 @@
+Repository: https://github.com/Bormotoon/BormoStats.git
+Base commit: 282a1e0ef9ab5a39c69276e64d6fadfc3c30d5e8
+Source branch: codex/report-sync-daily
+Captured: 2026-10-29 Europe/Moscow

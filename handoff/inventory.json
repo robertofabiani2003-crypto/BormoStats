@@ -1,0 +1,709 @@
+[
+  {
+    "path": ".dockerignore",
+    "status": "modified",
+    "size": 327,
+    "sha256": "40f0e12a867841c20db5e3c72802998a4b4a60ab725d10b41fa74c75dbb4e243",
+    "explanation": "Исключает локальные резервные копии и результаты из Docker-контекста."
+  },
+  {
+    "path": ".gitignore",
+    "status": "modified",
+    "size": 479,
+    "sha256": "0f4232e5c57c21a64a2521637d16bf1f9cff1ef93d7293da1a43a6a9bf2a92a2",
+    "explanation": "Исключает локальный файл входа LOGIN.local.txt из Git."
+  },
+  {
+    "path": "ARTICLE-ECONOMICS.md",
+    "status": "added",
+    "size": 6478,
+    "sha256": "9cb54c156dc772188b186d069d2bb75e0040427117439b99862f43645f1c9d07",
+    "explanation": "Предыдущие пояснения экономики артикулов и ручных сверок; часть описаний устарела."
+  },
+  {
+    "path": "LOCAL-SETUP.md",
+    "status": "added",
+    "size": 2133,
+    "sha256": "657b694e19a09134ac357aed07e6d226114fd04c5ec7056827008ccddd062f92",
+    "explanation": "Инструкция локального запуска SVOYO; состояние миграций требует актуализации."
+  },
+  {
+    "path": "PNL-TAX-ROLLBACK.md",
+    "status": "added",
+    "size": 3449,
+    "sha256": "df79ac8e89fe5fc0cb74e1c6702bfb7ab7d700d9e81215516a40ba0d6a51e730",
+    "explanation": "Предыдущие налоговые правила и переключение флага; часть описаний устарела."
+  },
+  {
+    "path": "REPORT-SYNC.md",
+    "status": "added",
+    "size": 17751,
+    "sha256": "2a3294a01b2cc590758b629eefd317c661f3407c8d8d4df0ece7a0b2700140a5",
+    "explanation": "Подробное описание ежедневного цикла и согласованности отчётов."
+  },
+  {
+    "path": "Set-PnlTax.ps1",
+    "status": "added",
+    "size": 965,
+    "sha256": "4e5f947f0d846011ddc7c9c216ef334cc5e434d79f66abb005af9d5743bae2ed",
+    "explanation": "Меняет налоговый флаг в локальном .env и применяет настройку backend."
+  },
+  {
+    "path": "Start-BormoStats.ps1",
+    "status": "added",
+    "size": 636,
+    "sha256": "e40a66f9fe5dd07f04fc23ee64bdfe3240ff67b9d7f53575118b1c806734e8f6",
+    "explanation": "Запускает локальный Docker Compose с дополнительной конфигурацией."
+  },
+  {
+    "path": "Stop-BormoStats.ps1",
+    "status": "added",
+    "size": 248,
+    "sha256": "595bc7ebeea6dec125ae5f987b37d7470b76d43a6b7b4a524f5e05ed18a7b4b5",
+    "explanation": "Останавливает локальные контейнеры с сохранением томов."
+  },
+  {
+    "path": "backend/app/api/v1/economics.py",
+    "status": "added",
+    "size": 1250,
+    "sha256": "3820404f941c8069c274d8bf53662e77dbb39f483161e9dde9bdae120455ac3d",
+    "explanation": "Добавляет API экономики артикулов Ozon за выбранный период."
+  },
+  {
+    "path": "backend/app/api/v1/finance.py",
+    "status": "modified",
+    "size": 2143,
+    "sha256": "008f290c89197a2ae2a5a011758f2cfd3cb0781c3e378cb7d42a03add2becd27",
+    "explanation": "Добавляет выбор даты снимка финансового баланса."
+  },
+  {
+    "path": "backend/app/api/v1/funnel.py",
+    "status": "modified",
+    "size": 15051,
+    "sha256": "2236637356dc921ef3d8e37d89c4f2a3602921ded7371ec05d43a3b0a81e0da4",
+    "explanation": "Добавляет импорт воронки Ozon и API для заказов, финансов, рекламы и остатков."
+  },
+  {
+    "path": "backend/app/api/v1/pnl.py",
+    "status": "modified",
+    "size": 2864,
+    "sha256": "e3937c5fc65f9017c8577ba2bdb383457a4e85dd27c83e114701eebdd2615cca",
+    "explanation": "Расширяет модели или API P&L: налог, дневной отчёт, периоды и дата внешнего расхода."
+  },
+  {
+    "path": "backend/app/api/v1/stocks.py",
+    "status": "modified",
+    "size": 1175,
+    "sha256": "38c33dd7af4f59b21208a5ce46b1abd6e4257e31802a500f17fa77e57c7e3e58",
+    "explanation": "Добавляет параметр даты для исторического снимка остатков."
+  },
+  {
+    "path": "backend/app/db/queries/finance_balance.sql",
+    "status": "modified",
+    "size": 1305,
+    "sha256": "e080d29397f31614be75d4db08d97d09ebe0fa96ad951dbe39907b010c0a799c",
+    "explanation": "Ограничивает баланс и последнюю выплату выбранной датой."
+  },
+  {
+    "path": "backend/app/db/queries/stocks.sql",
+    "status": "modified",
+    "size": 3173,
+    "sha256": "7b1d8e66994216b69d44def238440c1a7433f7884bf112d10f6a8e82498e9682",
+    "explanation": "Добавляет остатки на дату и их стоимость по себестоимости."
+  },
+  {
+    "path": "backend/app/main.py",
+    "status": "modified",
+    "size": 12239,
+    "sha256": "79f56309123b2a81b587f681765f1249b32abf4d3d36a263ea7275814cd21fe2",
+    "explanation": "Подключает API экономики артикулов."
+  },
+  {
+    "path": "backend/app/models/admin.py",
+    "status": "modified",
+    "size": 2800,
+    "sha256": "f86c20cd40179253dff8118f7e222ccc00abab875fdf7e7b5143cff65c5d8919",
+    "explanation": "Расширяет допустимые наборы данных ручной дозагрузки."
+  },
+  {
+    "path": "backend/app/models/pnl.py",
+    "status": "modified",
+    "size": 2860,
+    "sha256": "987dc5577a38685026ea2096a1457255019525753cb8bee5c02c17403d3bbc52",
+    "explanation": "Расширяет модели или API P&L: налог, дневной отчёт, периоды и дата внешнего расхода."
+  },
+  {
+    "path": "backend/app/services/admin_service.py",
+    "status": "modified",
+    "size": 7941,
+    "sha256": "67613252897cabe90f04a37b3e0a77f4bd943fb1cda84bb06517972c2a48f0e1",
+    "explanation": "Маршрутизирует новые наборы данных ручной дозагрузки Ozon."
+  },
+  {
+    "path": "backend/app/services/article_economics_service.py",
+    "status": "added",
+    "size": 15220,
+    "sha256": "cd0836dd870c6708498b9d4de1091ef1e245b988f902d3e1e4c99e325fcf4d12",
+    "explanation": "Собирает экономику SKU из начислений, рекламы, выкупов, себестоимости и налога."
+  },
+  {
+    "path": "backend/app/services/daily_pnl_service.py",
+    "status": "added",
+    "size": 11289,
+    "sha256": "2d81fb094512fad970130d3d0f4bf2c6c5ac201ed5aaf4c95b98489fba41df4b",
+    "explanation": "Считает дневную прибыль, распределяет месячные суммы по дням и возвращает остатки."
+  },
+  {
+    "path": "backend/app/services/metrics_service.py",
+    "status": "modified",
+    "size": 5142,
+    "sha256": "1ce1a5b77d81222e9863f1c65508860a2dca30df6faa02ab17990a18bd87bccb",
+    "explanation": "Передаёт дату снимка и меняет ключ кеша остатков для новых полей стоимости."
+  },
+  {
+    "path": "backend/app/services/ozon_cis_service.py",
+    "status": "added",
+    "size": 3141,
+    "sha256": "a79a06a15ff9c8192918d1647bb8aaf8c744a1e0053059f11590d18f34ca3b4e",
+    "explanation": "Добавляет выкупы СНГ без пересечения с обычными продажами."
+  },
+  {
+    "path": "backend/app/services/pnl_service.py",
+    "status": "modified",
+    "size": 14616,
+    "sha256": "327365e25d1613759c0aa3d7e8e71b96e226415520fb7e41890e0ea4f71f0880",
+    "explanation": "Корректирует финансирование, СНГ, налог и сохранение расходов с датой."
+  },
+  {
+    "path": "collectors/ozon/client.py",
+    "status": "modified",
+    "size": 18552,
+    "sha256": "ab7103ac2fe31655f9ed46f20e071e9beb1fe99c8c19512588b4b9031ef433bb",
+    "explanation": "Расширяет клиент Ozon: реализация, выкупы, SKU-реклама и метаданные кампаний."
+  },
+  {
+    "path": "collectors/ozon/endpoints.py",
+    "status": "modified",
+    "size": 2519,
+    "sha256": "89070b21af85978bcb5c5d566b4fc279cc15d45333f33bc16fd24fc350403745",
+    "explanation": "Добавляет пути запросов реализации и выкупов Ozon."
+  },
+  {
+    "path": "collectors/ozon/sku_ad_reports.py",
+    "status": "added",
+    "size": 3348,
+    "sha256": "06919005cae0e27c20ec221dd0cfedbd7ad1b6f3e1f6879317243378dcc797dc",
+    "explanation": "Разбирает SKU-рекламу, проверяет свежесть и подготавливает метаданные кампаний."
+  },
+  {
+    "path": "common/article_economics.py",
+    "status": "added",
+    "size": 8960,
+    "sha256": "d3fcb8eb98f1e11e0a0ca53a50f196e1d1eebd43fbd5c47b76d1f9869b777f8b",
+    "explanation": "Содержит денежные формулы экономики, классификацию удержаний и привязку рекламы."
+  },
+  {
+    "path": "common/celery_config.py",
+    "status": "modified",
+    "size": 1391,
+    "sha256": "2df1c57ce18e5f692f40fa6517ad3fb4d7e1745b5ee9511411c4b02331fd7684",
+    "explanation": "Регистрирует модуль единого ежедневного цикла."
+  },
+  {
+    "path": "common/economics_reference_images.json",
+    "status": "added",
+    "size": 821,
+    "sha256": "9be63425ca6d4e36d1fb02ff56f4ae43e15cdb1489e66276e2873e8df0a92d34",
+    "explanation": "Хранит резервные ссылки на фотографии конкретных артикулов магазина."
+  },
+  {
+    "path": "common/env_validation.py",
+    "status": "modified",
+    "size": 5919,
+    "sha256": "1a776de5a451b79186c4c3eca62c3ce5d574c6b3f5fe5b7f2b93ed080edfd199",
+    "explanation": "Разрешает запуск с одной настроенной площадкой; проверяет полную пару её ключей."
+  },
+  {
+    "path": "common/funnel_economics.py",
+    "status": "added",
+    "size": 3839,
+    "sha256": "f3916b96efb1f40151f870352f914ec50badb3cee0eb74622df469fc48b61ae6",
+    "explanation": "Считает финансовые события воронки, типы рекламы и показатели остатков."
+  },
+  {
+    "path": "common/ozon_buyouts.py",
+    "status": "added",
+    "size": 1407,
+    "sha256": "a574b5cd965f8bdbbc6de843ea9ae051fb88b6396685af6ec6e72d5232f34472",
+    "explanation": "Разбирает отчёт отдельных выкупов СНГ."
+  },
+  {
+    "path": "common/pnl_tax.py",
+    "status": "added",
+    "size": 2559,
+    "sha256": "78bcba4b5ec8ed30b4e125189dad6a2032c7b4b499e04bbeb3a0616173022439",
+    "explanation": "Проверяет реализацию и считает налог по заданной ставке с округлением."
+  },
+  {
+    "path": "compose.local.yaml",
+    "status": "added",
+    "size": 578,
+    "sha256": "c0d734d5413f6f46dcc660d3632de28501036125b9da5d2e941e65fd3fd42498",
+    "explanation": "Добавляет локальные bind-mount файлов и доступ к интерфейсу через loopback."
+  },
+  {
+    "path": "docs/architecture.md",
+    "status": "modified",
+    "size": 2846,
+    "sha256": "1bbc83c98250ebeaaa91e979690d8b417ca283c6f66b4c117835faf378210d75",
+    "explanation": "Описывает ежедневную последовательную загрузку вместо независимых таймеров."
+  },
+  {
+    "path": "docs/data_catalog.md",
+    "status": "modified",
+    "size": 10311,
+    "sha256": "47298a7d617b8a3a1f9c72c13c1f1a00b09c07be7727636a04db807fd37068eb",
+    "explanation": "Обновляет описание источников и периодичности данных."
+  },
+  {
+    "path": "frontend/e2e/date-range.spec.js",
+    "status": "added",
+    "size": 3742,
+    "sha256": "ac0b5e732fc59ea8f96eb070475cbe97e5c03426de4341ec31d0ef867ac04b5f",
+    "explanation": "Проверяет выбор периода через браузер."
+  },
+  {
+    "path": "frontend/e2e/pnl-expenses.spec.js",
+    "status": "added",
+    "size": 4979,
+    "sha256": "39f3c636651f3a58bb5c4efe8a6874a28fe14cc82704df5a7cc67d7b308b65d8",
+    "explanation": "Проверяет ввод внешних расходов через браузер."
+  },
+  {
+    "path": "frontend/src/App.jsx",
+    "status": "modified",
+    "size": 3509,
+    "sha256": "179e3b06586d75dfbe311334f273e176cfd8cf606537337a4c709c7950a0ddcf",
+    "explanation": "Добавляет маршрут раздела экономики."
+  },
+  {
+    "path": "frontend/src/components/DateRangePicker.css",
+    "status": "added",
+    "size": 4933,
+    "sha256": "c34b093de7ace6bd2bedfa558664c9a3040020ace3399b39bf64dcf073733cc2",
+    "explanation": "Стили календаря выбора периода."
+  },
+  {
+    "path": "frontend/src/components/DateRangePicker.jsx",
+    "status": "added",
+    "size": 10356,
+    "sha256": "7555408f7ecd3950fa5b3b0a0e9f6f1ed4a7a8ccf95606d76bc9c23d52b0fa7f",
+    "explanation": "Календарь и готовые периоды выбора дат."
+  },
+  {
+    "path": "frontend/src/components/ExpenseForm.jsx",
+    "status": "added",
+    "size": 5138,
+    "sha256": "33d7cc7cc71c73ef1e8318615d1d5e3338c3229ab33564c0d08b9b02f02e6877",
+    "explanation": "Форма добавления внешнего расхода с датой."
+  },
+  {
+    "path": "frontend/src/components/FiltersBar.jsx",
+    "status": "modified",
+    "size": 2569,
+    "sha256": "d27fcc8d6251d7ff1aa88bb796254adb064430a968afb7fdff2a83c4e28d611a",
+    "explanation": "Подключает новый выбор периода вместо прежних полей дат."
+  },
+  {
+    "path": "frontend/src/components/FreshnessBanner.jsx",
+    "status": "modified",
+    "size": 2334,
+    "sha256": "6ef3727d233556da803aa87aa81a6c659ac8391d71ffdf64bac9400499ba370a",
+    "explanation": "Приводит порог устаревания к ежедневной загрузке."
+  },
+  {
+    "path": "frontend/src/components/Layout.jsx",
+    "status": "modified",
+    "size": 9284,
+    "sha256": "5341685fd37ca01022ec63ff4c83b3d2c05cf05aede566edd1e57a2f14c258a3",
+    "explanation": "Добавляет экономику в навигацию."
+  },
+  {
+    "path": "frontend/src/pages/Dashboard.jsx",
+    "status": "modified",
+    "size": 13157,
+    "sha256": "b064b7230cd7e40f2385491bcc9d53185a17806889cad3a7d965feb0b84e147a",
+    "explanation": "Читает дневной P&L, показывает прибыль, налог, внешние расходы и стоимость остатков."
+  },
+  {
+    "path": "frontend/src/pages/Economics.jsx",
+    "status": "added",
+    "size": 12203,
+    "sha256": "c483c2e8dea9086421103107000127a32a70ad63a0b7a705b7e30127b186f8c5",
+    "explanation": "Таблица экономики артикулов, группы столбцов, итоги и экспорт."
+  },
+  {
+    "path": "frontend/src/pages/Funnel.jsx",
+    "status": "modified",
+    "size": 4435,
+    "sha256": "496d74cc6bac3b083d21219b784f2778f117f5b0cf2498721a44ba83f2b8941a",
+    "explanation": "Подключает отдельное представление воронки Ozon."
+  },
+  {
+    "path": "frontend/src/pages/OzonFunnel.jsx",
+    "status": "added",
+    "size": 8554,
+    "sha256": "d6b6f384dac23b0fbb33c6b4008614a3f9f0bfcdcf38b331ff27dd2fa964c7b4",
+    "explanation": "Импорт Excel и отображение расширенной воронки Ozon."
+  },
+  {
+    "path": "frontend/src/pages/PnL.jsx",
+    "status": "modified",
+    "size": 13148,
+    "sha256": "690e08bae2df95c5bc4b7dc8516cc4dd1abdb20bf356d209cd4ec827b5aae892",
+    "explanation": "Добавляет дневные итоги, статусы налога и форму внешнего расхода."
+  },
+  {
+    "path": "frontend/src/utils/dashboardProfit.js",
+    "status": "added",
+    "size": 1249,
+    "sha256": "4d7e636dfd2cec75178db4cab69c77b481b87102eade9ac78a1aa95500a97d4c",
+    "explanation": "Прежний вспомогательный расчёт месячной прибыли; текущий Dashboard читает дневной API."
+  },
+  {
+    "path": "frontend/src/utils/dashboardProfit.test.mjs",
+    "status": "added",
+    "size": 1564,
+    "sha256": "5d77e983e5c138c9aff909f783f6d9496e91ab7d3e28b8bd968552d75a6b9992",
+    "explanation": "Проверяет прежний вспомогательный расчёт месячной прибыли."
+  },
+  {
+    "path": "frontend/src/utils/dateRange.js",
+    "status": "added",
+    "size": 1324,
+    "sha256": "872fd6fb734535eb7c9e3acb93487d3f1df3c4a492305491d4455661cf12f1c9",
+    "explanation": "Функции календаря и готовых периодов."
+  },
+  {
+    "path": "frontend/src/utils/dateRange.test.mjs",
+    "status": "added",
+    "size": 1274,
+    "sha256": "22cb5fbb7737df03778acf092702bc330fe892ddb6b1c3d23ebe80063e0d1aee",
+    "explanation": "Проверяет периоды, переходы года и високосный февраль."
+  },
+  {
+    "path": "frontend/src/utils/economicsColumns.js",
+    "status": "added",
+    "size": 3921,
+    "sha256": "ee6cb590462cb153c26be6af66d00acb55b2f25a8b22c70f473c450605e56f9c",
+    "explanation": "Определяет столбцы и группы экономики артикулов."
+  },
+  {
+    "path": "frontend/src/utils/i18n.jsx",
+    "status": "modified",
+    "size": 32278,
+    "sha256": "032924e47ce120c386f2abcf67f55e9990ea489df21244e2786abf0f0693c572",
+    "explanation": "Добавляет подписи стоимости остатков и отсутствующей себестоимости."
+  },
+  {
+    "path": "frontend/src/utils/ozonFunnel.js",
+    "status": "added",
+    "size": 2728,
+    "sha256": "850895fdfa5d34baae2d2a43eb8e94ca857d484fe0a19ca2c3d0a1f9949be217",
+    "explanation": "Разбирает импортируемый Excel и объединяет данные воронки."
+  },
+  {
+    "path": "frontend/src/utils/ozonFunnelDefinitions.js",
+    "status": "added",
+    "size": 5472,
+    "sha256": "0fb083031e8ed3a8f19c911fb0da593d67c6cf4969ee9e521b565d1d586992b8",
+    "explanation": "Определяет столбцы и пояснения показателей воронки."
+  },
+  {
+    "path": "frontend/src/utils/ozonFunnelMetrics.js",
+    "status": "added",
+    "size": 5522,
+    "sha256": "0249b20f6ae92e01f852a725b243552f18438c2029f58696bd5cca57e11133e6",
+    "explanation": "Вычисляет показатели и прогнозы воронки Ozon."
+  },
+  {
+    "path": "frontend/src/utils/ozonFunnelMetrics.test.mjs",
+    "status": "added",
+    "size": 2707,
+    "sha256": "de77d752f427f2bb9ea358329984b048397fbdbde380f4e1de08fbf4d152316b",
+    "explanation": "Проверяет даты событий, прогнозы, остатки и классификацию рекламы."
+  },
+  {
+    "path": "frontend/src/utils/xlsx.js",
+    "status": "modified",
+    "size": 15871,
+    "sha256": "02bc5e664d5a807ad2371334d05fe368eb7eea0ca09cce43e063e29f907c1118",
+    "explanation": "Расширяет экспорт таблиц для новых полей."
+  },
+  {
+    "path": "infra/monitoring/prometheus/alerts.test.yml",
+    "status": "modified",
+    "size": 6662,
+    "sha256": "9d9504dbe16f386f54b7f63caeb2aebc010daa5bb59e9e45aeba6feb86fc8138",
+    "explanation": "Обновляет ожидаемые результаты тестов порогов устаревания."
+  },
+  {
+    "path": "infra/monitoring/prometheus/alerts.yml",
+    "status": "modified",
+    "size": 5653,
+    "sha256": "05b992806510030ef6376007dd0561881e010a99299f750888e6ffc1e98c90ec",
+    "explanation": "Настраивает оповещения под ежедневную загрузку."
+  },
+  {
+    "path": "scripts/load_buyouts_week.py",
+    "status": "added",
+    "size": 2351,
+    "sha256": "da6cda70428ae3b6744bdc6b8903d4b2d886e83f51f99c6f219be1be85b11704",
+    "explanation": "Скрипт ручной загрузки выкупов за выбранную неделю."
+  },
+  {
+    "path": "tests/integration/test_pipeline_smoke.py",
+    "status": "modified",
+    "size": 29788,
+    "sha256": "5f2a570789eafea4e9f4ce60730bf11c505418b489d744783620dbf1eed56874",
+    "explanation": "Адаптирует интеграционный smoke-тест к обновлённой сборке данных."
+  },
+  {
+    "path": "tests/unit/test_article_economics.py",
+    "status": "added",
+    "size": 3035,
+    "sha256": "e34ea6960b3db75cb6aa878ae8dcb70aa53c38beeffea4c90491a9abf1e5ebf8",
+    "explanation": "Проверяет формулы экономики, удержания и привязку рекламы."
+  },
+  {
+    "path": "tests/unit/test_buyout_economics.py",
+    "status": "added",
+    "size": 3081,
+    "sha256": "67d0ba83dda50ec64cf98a97b29fa395dad3f08f5b3938c3abf13f6085a14448",
+    "explanation": "Проверяет экономику СНГ и исключение повторных продаж."
+  },
+  {
+    "path": "tests/unit/test_celery_config.py",
+    "status": "modified",
+    "size": 2160,
+    "sha256": "c632042f58fc470ed6e5b919928c128ec6129c8c70db54026ad97701f77b3f00",
+    "explanation": "Проверяет регистрацию новых задач."
+  },
+  {
+    "path": "tests/unit/test_daily_pnl.py",
+    "status": "added",
+    "size": 3156,
+    "sha256": "a64ddcc03f77412b73e3f5648e5af15729b894de39b193303d99b0a2efc9c386",
+    "explanation": "Проверяет дневной расчёт и распределение месячных сумм."
+  },
+  {
+    "path": "tests/unit/test_expense_dates.py",
+    "status": "added",
+    "size": 4897,
+    "sha256": "24387829f8365640dc72d5954d84ee500a9c9a849ec12a04c8c845c5c659e34d",
+    "explanation": "Проверяет дату расхода и перенос между месяцами."
+  },
+  {
+    "path": "tests/unit/test_funnel_economics.py",
+    "status": "added",
+    "size": 1988,
+    "sha256": "6c3ac0b02c1ea1e6e0d149c3f5d4f8b418fdff107afc46228cd2eee4bafc1896",
+    "explanation": "Проверяет финансовые дни, типы кампаний и остатки воронки."
+  },
+  {
+    "path": "tests/unit/test_pnl_financing.py",
+    "status": "added",
+    "size": 1304,
+    "sha256": "10b78665fc5fe3384a2ea5a1e4c50547b7d5906cf562b33ed8813501eb949699",
+    "explanation": "Проверяет исключение потоков долга из расходов."
+  },
+  {
+    "path": "tests/unit/test_pnl_tax.py",
+    "status": "added",
+    "size": 2687,
+    "sha256": "64f5a6711f11f89cfc4f7b49c124b2d723c071c4000c5692bcc3e240c5933a1d",
+    "explanation": "Проверяет базу налога, структуру реализации и округление."
+  },
+  {
+    "path": "tests/unit/test_pnl_tax_service.py",
+    "status": "added",
+    "size": 4315,
+    "sha256": "915d5967048376074c3e62813e8b36aa98569dee1ac12d0ec89d7fbe25f28e60",
+    "explanation": "Проверяет применение налога к месячному P&L."
+  },
+  {
+    "path": "tests/unit/test_rebuild_serialization.py",
+    "status": "modified",
+    "size": 5100,
+    "sha256": "648fda2647b832bba30a900097ee963d2e447e0904edce80f5eb72254f50e508",
+    "explanation": "Проверяет окна пересчёта рекламы и сохранение истории планирования поставок."
+  },
+  {
+    "path": "tests/unit/test_sku_ad_reports.py",
+    "status": "added",
+    "size": 2279,
+    "sha256": "da618736460630174d4078d46c2a3f91879258990a53e012c036c51eed6bf20f",
+    "explanation": "Проверяет разбор и свежесть рекламных отчётов."
+  },
+  {
+    "path": "tests/worker_suite/test_daily_reports.py",
+    "status": "added",
+    "size": 7484,
+    "sha256": "9d52f9e03395fb18eac6d8babb6aacfb6b414a76b7988778ef426fea754068cc",
+    "explanation": "Проверяет последовательность ежедневного цикла, блокировки и повторные запуски."
+  },
+  {
+    "path": "tests/worker_suite/test_sku_report_collection.py",
+    "status": "added",
+    "size": 3289,
+    "sha256": "33e401350bc4c1a7860e76749cfc16c279fe76b4adaf2844771df9e2d75e2c9e",
+    "explanation": "Проверяет загрузку, кеширование и исправленные версии SKU-отчётов."
+  },
+  {
+    "path": "warehouse/migrations/0039_ozon_realization_tax.sql",
+    "status": "added",
+    "size": 463,
+    "sha256": "142496596d224362de49ca7ca9006ada913a119d12a06db1b585fbd475fc1f5b",
+    "explanation": "Миграция: месячная реализация Ozon для налога."
+  },
+  {
+    "path": "warehouse/migrations/0040_ozon_ads_sku.sql",
+    "status": "added",
+    "size": 304,
+    "sha256": "c5c727da3a332267b8a092889d8b0cfa799cb09c4e9ac4a9064142327737568c",
+    "explanation": "Миграция: расходы рекламы по SKU."
+  },
+  {
+    "path": "warehouse/migrations/0041_ozon_sku_report_jobs.sql",
+    "status": "added",
+    "size": 285,
+    "sha256": "936054348269ceab5b81e1e410453d208f5ca21b20690d7139bb85ef6b9e9de1",
+    "explanation": "Миграция: UUID и состояние заданий рекламных отчётов."
+  },
+  {
+    "path": "warehouse/migrations/0042_ozon_buyouts_daily.sql",
+    "status": "added",
+    "size": 353,
+    "sha256": "4d45b6cfe36b5b1a85fba28dc049da790daa6875b27f5672d041fdb8f5e07b14",
+    "explanation": "Миграция: дневные снимки выкупов СНГ."
+  },
+  {
+    "path": "warehouse/migrations/0043_ozon_funnel_import.sql",
+    "status": "added",
+    "size": 440,
+    "sha256": "200fa7cbbe38817d507059b7b75957b13ba71e150b661e66e4c51905936b9680",
+    "explanation": "Миграция: импорт Excel-воронки Ozon."
+  },
+  {
+    "path": "warehouse/migrations/0044_ozon_campaign_metadata.sql",
+    "status": "added",
+    "size": 295,
+    "sha256": "d79cb9268320154c0f03c121e303ecef7b9756662bb8f1610e12ea0bb88b0a91",
+    "explanation": "Миграция: история метаданных рекламных кампаний."
+  },
+  {
+    "path": "warehouse/migrations/0045_expense_date.sql",
+    "status": "added",
+    "size": 181,
+    "sha256": "c197f586c7e60bc3638b760375723db5788b8e539e39808806faae9e2242cb55",
+    "explanation": "Миграция: дата внешнего расхода."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0039_ozon_realization_tax.sql",
+    "status": "added",
+    "size": 130,
+    "sha256": "c872ca2738be59ac1a1acf42b62ca4baa08efafde3c5f9524f540e16dccd2d16",
+    "explanation": "Откат: месячная реализация Ozon для налога."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0040_ozon_ads_sku.sql",
+    "status": "added",
+    "size": 45,
+    "sha256": "f07a08dcb38845b0c28d5be704d144bad4c7e2ea1deb4abbbf0463fea4070170",
+    "explanation": "Откат: расходы рекламы по SKU."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0041_ozon_sku_report_jobs.sql",
+    "status": "added",
+    "size": 47,
+    "sha256": "32c177559f620789f198a25aa671f1f63ba90850182d79656fd09df436f0bb96",
+    "explanation": "Откат: UUID и состояние заданий рекламных отчётов."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0042_ozon_buyouts_daily.sql",
+    "status": "added",
+    "size": 45,
+    "sha256": "24bdd2f7c31b9930ff0cccc1c5c7c9c1e65babbf58d206582b8b5e8248c2006b",
+    "explanation": "Откат: дневные снимки выкупов СНГ."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0043_ozon_funnel_import.sql",
+    "status": "added",
+    "size": 42,
+    "sha256": "66a7dd80949099f1e43015847502c8675ecca4efa45ce81e41c3146049a868e5",
+    "explanation": "Откат: импорт Excel-воронки Ozon."
+  },
+  {
+    "path": "warehouse/migrations/rollbacks/0045_expense_date.sql",
+    "status": "added",
+    "size": 71,
+    "sha256": "b19b30bc1aeafc4b7ed9b39780750826d92bad936a861e97e3bc7a778829fd29",
+    "explanation": "Откат: дата внешнего расхода."
+  },
+  {
+    "path": "workers/app/beat_schedule.py",
+    "status": "modified",
+    "size": 2196,
+    "sha256": "3ccb440f91a2abf303ad7fc1a6aea2b6d47085111766c5c5731e30d30852a9d4",
+    "explanation": "Заменяет регулярные таймеры аналитики единым запуском в 06:00."
+  },
+  {
+    "path": "workers/app/celery_app.py",
+    "status": "modified",
+    "size": 3676,
+    "sha256": "61dc259196e1bb14ae2df21a283784acd11382e388d6b5752a26bc3f8819df2d",
+    "explanation": "Подключает новый модуль задач reports."
+  },
+  {
+    "path": "workers/app/sql/marts/mrt_pnl_monthly.sql",
+    "status": "modified",
+    "size": 3765,
+    "sha256": "b7d38bf8406eb20deee1c64050a7b1e8e559c1eb323b8bda539d4a0d830abfa4",
+    "explanation": "Берёт рекламу из финансовых удержаний и устраняет её повторный вычет."
+  },
+  {
+    "path": "workers/app/tasks/marts.py",
+    "status": "modified",
+    "size": 6411,
+    "sha256": "ef89f30cea4913af6ce6c8e85e96757fd00ace93e99dba5edf9102b5077fdf7b",
+    "explanation": "Согласует удаление и вставку рекламных окон; сохраняет прошлые снимки планирования."
+  },
+  {
+    "path": "workers/app/tasks/ozon_collect.py",
+    "status": "modified",
+    "size": 31153,
+    "sha256": "50d31596eb4b08a969ffedbcdd618ebf65e8881499ca7dae89567fdc21baeaff",
+    "explanation": "Расширяет сбор реализации, выкупов и рекламы; обновляет статусы отправлений и баланс."
+  },
+  {
+    "path": "workers/app/tasks/reports.py",
+    "status": "added",
+    "size": 5270,
+    "sha256": "ad222ef25c32ee47b0aff2999ea77bc7d314eac935d184ae105d8d54f44e5090",
+    "explanation": "Последовательно запускает сбор, преобразования, витрины и проверки с контрольными точками Redis."
+  },
+  {
+    "path": "workers/app/utils/data_quality.py",
+    "status": "modified",
+    "size": 13532,
+    "sha256": "aa1ba273993127aa3b17998ab58e54fde77dc5d5fa3c507d924bbc0a99ec527f",
+    "explanation": "Обновляет контроль свежести под ежедневный цикл."
+  },
+  {
+    "path": "workers/app/utils/watermarks.py",
+    "status": "modified",
+    "size": 2353,
+    "sha256": "64cb3d6cf1eebf929ddec242e61ecdec912b64feaa375abe10f8a306a4b3df0a",
+    "explanation": "Передаёт временные отметки с часовым поясом."
+  }
+]
