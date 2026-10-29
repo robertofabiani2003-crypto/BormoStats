@@ -1,0 +1,160 @@
+"""Runtime configuration validation helpers."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+
+PLACEHOLDER_VALUES = frozenset(
+    {
+        "...",
+        "change_me",
+        "replace_me",
+        "replace-me",
+        "replace-with-long-random-admin-key",
+        "replace-with-real-ozon-api-key",
+        "replace-with-real-ozon-client-id",
+        "replace-with-real-wb-analytics-token",
+        "replace-with-real-wb-statistics-token",
+        "replace-with-strong-clickhouse-password",
+        "replace-with-strong-bootstrap-clickhouse-password",
+        "replace-with-strong-readonly-password",
+        "replace-with-strong-value",
+    }
+)
+PLACEHOLDER_PREFIXES = ("replace-with-", "change-me", "changeme")
+INSECURE_CLICKHOUSE_USERS = frozenset({"admin", "default"})
+STRICT_ENVIRONMENTS = frozenset({"prod", "production", "stage", "staging"})
+REQUIRED_MARKETPLACE_KEYS = (
+    "WB_TOKEN_STATISTICS",
+    "WB_TOKEN_ANALYTICS",
+    "OZON_CLIENT_ID",
+    "OZON_API_KEY",
+)
+
+
+class InvalidConfigurationError(RuntimeError):
+    """Raised when required runtime configuration is missing or unsafe."""
+
+
+def _normalized(value: str | None) -> str:
+    return (value or "").strip()
+
+
+def is_placeholder(value: str | None) -> bool:
+    normalized = _normalized(value).casefold()
+    return (
+        not normalized
+        or normalized in PLACEHOLDER_VALUES
+        or normalized.startswith(PLACEHOLDER_PREFIXES)
+    )
+
+
+def is_strict_environment(env: Mapping[str, str | None]) -> bool:
+    """Stage and prod must not start with blank secrets for shared infrastructure."""
+    return _normalized(env.get("APP_ENV")).casefold() in STRICT_ENVIRONMENTS
+
+
+def _collect_shared_secret_issues(env: Mapping[str, str | None]) -> list[str]:
+    if not is_strict_environment(env):
+        return []
+    issues: list[str] = []
+    if is_placeholder(env.get("REDIS_PASSWORD")):
+        issues.append("REDIS_PASSWORD must be set to a strong value in stage/prod")
+    if is_placeholder(env.get("WEBHOOK_SECRET_KEY")):
+        issues.append("WEBHOOK_SECRET_KEY must be set to a strong value in stage/prod")
+    if _normalized(env.get("PUBLIC_READ_API")).casefold() in {"1", "true", "yes", "on"}:
+        issues.append("PUBLIC_READ_API must be disabled in stage/prod")
+    if _normalized(env.get("WEBHOOK_ALLOW_PRIVATE_TARGETS")).casefold() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        issues.append("WEBHOOK_ALLOW_PRIVATE_TARGETS must be disabled in stage/prod")
+    return issues
+
+
+def _collect_clickhouse_runtime_issues(env: Mapping[str, str | None]) -> list[str]:
+    issues: list[str] = []
+
+    ch_user = _normalized(env.get("CH_USER"))
+    if is_placeholder(ch_user):
+        issues.append("CH_USER is required and cannot be blank or a placeholder")
+    elif ch_user.casefold() in INSECURE_CLICKHOUSE_USERS:
+        issues.append("CH_USER must be a dedicated application user, not 'default' or 'admin'")
+
+    if is_placeholder(env.get("CH_PASSWORD")):
+        issues.append("CH_PASSWORD must be set to a strong non-placeholder value")
+
+    ch_ro_user = _normalized(env.get("CH_RO_USER"))
+    ch_ro_password = _normalized(env.get("CH_RO_PASSWORD"))
+    if ch_ro_user or ch_ro_password:
+        if is_placeholder(ch_ro_user):
+            issues.append(
+                "CH_RO_USER must be set when a read-only ClickHouse password is configured"
+            )
+        if is_placeholder(ch_ro_password):
+            issues.append("CH_RO_PASSWORD must be set to a strong non-placeholder value")
+
+    return issues
+
+
+def collect_backend_startup_issues(env: Mapping[str, str | None]) -> list[str]:
+    issues = _collect_clickhouse_runtime_issues(env)
+    issues.extend(_collect_shared_secret_issues(env))
+
+    if is_placeholder(env.get("ADMIN_API_KEY")):
+        issues.append("ADMIN_API_KEY must be set to a strong non-placeholder value")
+
+    return issues
+
+
+def collect_worker_startup_issues(env: Mapping[str, str | None]) -> list[str]:
+    issues = _collect_clickhouse_runtime_issues(env)
+    issues.extend(_collect_shared_secret_issues(env))
+
+    issues.extend(_collect_marketplace_issues(env))
+
+    return issues
+
+
+def _collect_marketplace_issues(env: Mapping[str, str | None]) -> list[str]:
+    groups = (("WB_TOKEN_STATISTICS", "WB_TOKEN_ANALYTICS"),
+              ("OZON_CLIENT_ID", "OZON_API_KEY"))
+    configured = [group for group in groups if any(_normalized(env.get(k)) for k in group)]
+    if not configured:
+        return ["Configure at least one marketplace credential pair (WB or Ozon)"]
+    return [f"{key} must be set for the configured marketplace"
+            for group in configured for key in group if is_placeholder(env.get(key))]
+
+
+def collect_bootstrap_issues(env: Mapping[str, str | None]) -> list[str]:
+    issues = _collect_clickhouse_runtime_issues(env)
+    bootstrap_user = _normalized(env.get("BOOTSTRAP_CH_ADMIN_USER"))
+    if is_placeholder(bootstrap_user):
+        issues.append("BOOTSTRAP_CH_ADMIN_USER must be set before bootstrap")
+    elif bootstrap_user.casefold() in INSECURE_CLICKHOUSE_USERS:
+        issues.append(
+            "BOOTSTRAP_CH_ADMIN_USER must be a dedicated bootstrap user, not 'default' or 'admin'"
+        )
+
+    if is_placeholder(env.get("BOOTSTRAP_CH_ADMIN_PASSWORD")):
+        issues.append("BOOTSTRAP_CH_ADMIN_PASSWORD must be set before bootstrap")
+
+    if is_placeholder(env.get("ADMIN_API_KEY")):
+        issues.append("ADMIN_API_KEY must be set before bootstrap")
+
+    if is_placeholder(env.get("REDIS_PASSWORD")):
+        issues.append("REDIS_PASSWORD must be set before bootstrap")
+
+    issues.extend(_collect_marketplace_issues(env))
+
+    return issues
+
+
+def raise_for_issues(context: str, issues: Sequence[str]) -> None:
+    if not issues:
+        return
+
+    details = "\n".join(f"- {issue}" for issue in issues)
+    raise InvalidConfigurationError(f"Unsafe {context} configuration:\n{details}")

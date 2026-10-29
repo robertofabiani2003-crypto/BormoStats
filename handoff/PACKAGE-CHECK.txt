@@ -1,0 +1,5 @@
+2026-10-29 Europe/Moscow
+101/101 source files captured and SHA-256 checked against inventory and current application source.
+git apply --check on clean baseline 282a1e0: PASS.
+No outputs, .env, LOGIN.local.txt, certificates or backups included.
+Basic private-key and long literal credential pattern scan: no matches (not an exhaustive secret audit).

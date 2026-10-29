@@ -1,0 +1,397 @@
+"""Data quality checks for scheduled warehouse validation."""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from datetime import UTC, date, datetime, timedelta
+from typing import Any, cast
+
+import clickhouse_connect
+
+# Daily collection at 06:00 plus time for API throttling and retries.
+MAX_MART_STALENESS = timedelta(hours=30)
+MAX_FUTURE_SKEW = timedelta(minutes=5)
+MAX_SAMPLE_ROWS = 3
+
+
+@dataclass(frozen=True)
+class DataQualityIssue:
+    check: str
+    summary: str
+    failures: int
+    samples: list[dict[str, Any]]
+
+    def as_meta(self) -> dict[str, Any]:
+        return cast(dict[str, Any], _json_safe(asdict(self)))
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, date):  # datetime included
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(item) for item in value]
+    return value
+
+
+def _query_dicts(
+    client: clickhouse_connect.driver.Client,
+    sql: str,
+    parameters: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    result = client.query(sql, parameters=parameters or {})
+    return [dict(zip(result.column_names, row, strict=True)) for row in result.result_rows]
+
+
+def _to_utc(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+    return None
+
+
+def evaluate_data_quality(
+    client: clickhouse_connect.driver.Client,
+) -> list[DataQualityIssue]:
+    issues: list[DataQualityIssue] = []
+    for check in (
+        _check_stale_marts,
+        _check_watermark_monotonicity,
+        _check_duplicate_grains,
+        _check_impossible_timestamps,
+        _check_invalid_values,
+    ):
+        issue = check(client)
+        if issue is not None:
+            issues.append(issue)
+    return issues
+
+
+def _check_stale_marts(client: clickhouse_connect.driver.Client) -> DataQualityIssue | None:
+    marts_have_run = bool(
+        client.query("""
+            SELECT count()
+            FROM sys_task_runs
+            WHERE task_name LIKE 'tasks.marts.%'
+              AND status = 'success'
+            """).result_rows[0][0]
+    )
+    if not marts_have_run:
+        return None
+
+    cutoff = datetime.now(UTC) - MAX_MART_STALENESS
+    samples: list[dict[str, Any]] = []
+
+    for table_name, source_table in (
+        ("mrt_sales_daily", "stg_sales"),
+        ("mrt_stock_daily", "stg_stocks"),
+        ("mrt_funnel_daily", "stg_funnel_daily"),
+        ("mrt_ads_daily", "stg_ads_daily"),
+    ):
+        # a mart without source rows (e.g. no ad campaigns) is empty, not stale
+        if not client.query(f"SELECT count() FROM {source_table}").result_rows[0][0]:
+            continue
+        result = client.query(
+            f"SELECT max(updated_at) AS last_updated FROM {table_name}", parameters={}
+        )
+        value = _to_utc(result.result_rows[0][0] if result.result_rows else None)
+        if value is None or value < cutoff:
+            samples.append(
+                {
+                    "table": table_name,
+                    "last_updated": value.isoformat() if value is not None else None,
+                    "cutoff": cutoff.isoformat(),
+                }
+            )
+
+    if not samples:
+        return None
+
+    return DataQualityIssue(
+        check="stale_marts",
+        summary="mart tables are stale or empty after successful marts runs",
+        failures=len(samples),
+        samples=samples[:MAX_SAMPLE_ROWS],
+    )
+
+
+def _check_watermark_monotonicity(
+    client: clickhouse_connect.driver.Client,
+) -> DataQualityIssue | None:
+    rows = _query_dicts(
+        client,
+        """
+        SELECT source, account_id, watermark_ts, updated_at
+        FROM sys_watermarks
+        ORDER BY source, account_id, updated_at
+        """,
+    )
+    previous: dict[tuple[str, str], datetime] = {}
+    samples: list[dict[str, Any]] = []
+
+    for row in rows:
+        key = (str(row["source"]), str(row["account_id"]))
+        current = _to_utc(row["watermark_ts"])
+        if current is None:
+            continue
+        prior = previous.get(key)
+        if prior is not None and current < prior:
+            updated_at = _to_utc(row["updated_at"])
+            samples.append(
+                {
+                    "source": key[0],
+                    "account_id": key[1],
+                    "previous_watermark": prior.isoformat(),
+                    "watermark": current.isoformat(),
+                    "updated_at": updated_at.isoformat() if updated_at is not None else None,
+                }
+            )
+        previous[key] = current
+
+    if not samples:
+        return None
+
+    return DataQualityIssue(
+        check="watermark_monotonicity",
+        summary="watermarks moved backwards for one or more source/account pairs",
+        failures=len(samples),
+        samples=samples[:MAX_SAMPLE_ROWS],
+    )
+
+
+def _check_duplicate_grains(client: clickhouse_connect.driver.Client) -> DataQualityIssue | None:
+    duplicate_specs = (
+        ("stg_sales", ("marketplace", "account_id", "order_id", "product_id", "event_ts")),
+        ("stg_orders", ("marketplace", "account_id", "order_id", "event_ts")),
+        ("stg_stocks", ("marketplace", "account_id", "day", "product_id", "warehouse_id")),
+        ("stg_funnel_daily", ("marketplace", "account_id", "day", "product_id")),
+        ("stg_ads_daily", ("marketplace", "account_id", "day", "campaign_id")),
+        ("stg_finance_ops", ("marketplace", "account_id", "operation_id", "operation_ts")),
+        ("mrt_sales_daily", ("marketplace", "account_id", "day", "product_id")),
+        ("mrt_stock_daily", ("marketplace", "account_id", "day", "product_id", "warehouse_id")),
+        ("mrt_funnel_daily", ("marketplace", "account_id", "day", "product_id")),
+        ("mrt_ads_daily", ("marketplace", "account_id", "day", "campaign_id")),
+    )
+    samples: list[dict[str, Any]] = []
+    failures = 0
+
+    for table_name, columns in duplicate_specs:
+        group_by = ", ".join(columns)
+        rows = _query_dicts(
+            client,
+            f"""
+            SELECT {group_by}, count() AS duplicate_count
+            FROM {table_name}
+            GROUP BY {group_by}
+            HAVING duplicate_count > 1
+            ORDER BY duplicate_count DESC
+            LIMIT %(limit)s
+            """,
+            parameters={"limit": MAX_SAMPLE_ROWS},
+        )
+        failures += len(rows)
+        for row in rows:
+            samples.append({"table": table_name, **row})
+
+    if failures == 0:
+        return None
+
+    return DataQualityIssue(
+        check="duplicate_grains",
+        summary="canonical stg/mrt tables contain duplicate rows on expected grain",
+        failures=failures,
+        samples=samples[:MAX_SAMPLE_ROWS],
+    )
+
+
+def _check_impossible_timestamps(
+    client: clickhouse_connect.driver.Client,
+) -> DataQualityIssue | None:
+    # The cut-offs are computed by the server in each column's convention (see
+    # docs/data_catalog.md, "Time"): raw WB times hold Moscow wall-clock, raw Ozon times UTC
+    # wall-clock (both as written through the server time zone), staging true instants.
+    samples: list[dict[str, Any]] = []
+    skew = f"INTERVAL {int(MAX_FUTURE_SKEW.total_seconds())} SECOND"
+    moscow_now = "toDateTime(toString(now(), 'Europe/Moscow'))"
+    utc_now = "toDateTime(toString(now(), 'UTC'))"
+
+    checks = (
+        f"""
+        SELECT 'raw_wb_sales' AS table_name, account_id, srid AS entity_id, event_ts AS bad_ts
+        FROM raw_wb_sales
+        WHERE event_ts > {moscow_now} + {skew}
+        LIMIT %(limit)s
+        """,
+        f"""
+        SELECT 'raw_wb_orders' AS table_name, account_id, srid AS entity_id, event_ts AS bad_ts
+        FROM raw_wb_orders
+        WHERE event_ts > {moscow_now} + {skew}
+        LIMIT %(limit)s
+        """,
+        f"""
+        SELECT
+          'raw_ozon_postings' AS table_name,
+          account_id,
+          posting_number AS entity_id,
+          created_at AS bad_ts
+        FROM raw_ozon_postings
+        WHERE created_at > {utc_now} + {skew}
+           OR (delivered_at IS NOT NULL AND delivered_at < created_at)
+           OR (canceled_at IS NOT NULL AND canceled_at < created_at)
+        LIMIT %(limit)s
+        """,
+        f"""
+        SELECT
+          'stg_sales' AS table_name,
+          account_id,
+          order_id AS entity_id,
+          event_ts AS bad_ts
+        FROM stg_sales
+        WHERE event_ts > now() + {skew}
+        LIMIT %(limit)s
+        """,
+    )
+
+    for sql in checks:
+        samples.extend(_query_dicts(client, sql, parameters={"limit": MAX_SAMPLE_ROWS}))
+
+    if not samples:
+        return None
+
+    return DataQualityIssue(
+        check="impossible_timestamps",
+        summary="future or chronologically impossible timestamps were detected",
+        failures=len(samples),
+        samples=samples[:MAX_SAMPLE_ROWS],
+    )
+
+
+def _check_invalid_values(client: clickhouse_connect.driver.Client) -> DataQualityIssue | None:
+    samples: list[dict[str, Any]] = []
+
+    checks = (
+        """
+        SELECT
+          'mrt_stock_daily_negative' AS issue,
+          marketplace,
+          account_id,
+          product_id,
+          toString(stock_end) AS value
+        FROM mrt_stock_daily
+        WHERE stock_end < 0
+        LIMIT %(limit)s
+        """,
+        """
+        SELECT
+          'mrt_ads_daily_negative_cost' AS issue,
+          marketplace,
+          account_id,
+          campaign_id AS product_id,
+          toString(cost) AS value
+        FROM mrt_ads_daily
+        WHERE cost < 0 OR revenue < 0
+        LIMIT %(limit)s
+        """,
+        """
+        SELECT
+          'mrt_funnel_daily_negative_counts' AS issue,
+          marketplace,
+          account_id,
+          product_id,
+          concat(toString(views), '/', toString(adds_to_cart), '/', toString(orders)) AS value
+        FROM mrt_funnel_daily
+        -- WB counts cart adds from search results (no card view) and one-click orders
+        -- (no cart), so only negative counts are impossible
+        WHERE views < 0 OR adds_to_cart < 0 OR orders < 0
+        LIMIT %(limit)s
+        """,
+    )
+
+    for sql in checks:
+        samples.extend(_query_dicts(client, sql, parameters={"limit": MAX_SAMPLE_ROWS}))
+
+    if not samples:
+        return None
+
+    return DataQualityIssue(
+        check="invalid_values",
+        summary="negative or impossible aggregate values were detected",
+        failures=len(samples),
+        samples=samples[:MAX_SAMPLE_ROWS],
+    )
+
+
+# -- Continuous data-quality metrics (exported to Prometheus) ----------------------------
+
+FRESHNESS_TABLES = ("mrt_sales_daily", "mrt_stock_daily", "mrt_funnel_daily", "mrt_ads_daily")
+NULL_RATE_COLUMNS = (
+    ("mrt_sales_daily", "payout"),
+    ("mrt_stock_daily", "warehouse_id"),
+    ("stg_sales", "product_id"),
+)
+# Tables/columns the application depends on; anything missing is schema drift.
+EXPECTED_SCHEMA: dict[str, frozenset[str]] = {
+    "mrt_sales_daily": frozenset(
+        {"day", "marketplace", "account_id", "product_id", "qty", "revenue"}
+    ),
+    "mrt_stock_daily": frozenset({"day", "marketplace", "account_id", "product_id", "stock_end"}),
+    "mrt_ads_daily": frozenset(
+        {"day", "marketplace", "account_id", "campaign_id", "cost", "orders"}
+    ),
+    "dim_account": frozenset({"account_id", "marketplace", "organization_id"}),
+    "dim_actionable_task": frozenset({"task_id", "organization_id", "dedupe_key", "status"}),
+    "sys_marketplace_actions": frozenset({"idempotency_key", "status", "organization_id"}),
+}
+
+
+@dataclass(frozen=True)
+class DataQualityMetrics:
+    freshness_seconds: dict[str, float]
+    rows_yesterday: dict[str, int]
+    null_rate: dict[tuple[str, str], float]
+    schema_missing: dict[str, int]
+
+
+def collect_data_quality_metrics(
+    client: clickhouse_connect.driver.Client,
+    now: datetime | None = None,
+) -> DataQualityMetrics:
+    current = now or datetime.now(UTC)
+    freshness: dict[str, float] = {}
+    rows: dict[str, int] = {}
+    for table_name in FRESHNESS_TABLES:
+        result = client.query(
+            f"SELECT max(updated_at), countIf(day = today() - 1) FROM {table_name}"
+        ).result_rows
+        last_updated = _to_utc(result[0][0]) if result else None
+        freshness[table_name] = (
+            (current - last_updated).total_seconds() if last_updated is not None else float("inf")
+        )
+        rows[table_name] = int(result[0][1]) if result else 0
+
+    null_rate: dict[tuple[str, str], float] = {}
+    for table_name, column in NULL_RATE_COLUMNS:
+        result = client.query(
+            f"SELECT if(count() = 0, 0, countIf(isNull({column}) OR toString({column}) = '')"
+            f" / count()) FROM {table_name} WHERE day >= today() - 7"
+        ).result_rows
+        null_rate[(table_name, column)] = float(result[0][0]) if result else 0.0
+
+    columns = client.query(
+        "SELECT table, name FROM system.columns WHERE database = currentDatabase()"
+    ).result_rows
+    present: dict[str, set[str]] = {}
+    for table, column in columns:
+        present.setdefault(str(table), set()).add(str(column))
+    schema_missing = {
+        table: len(expected - present.get(table, set()))
+        for table, expected in EXPECTED_SCHEMA.items()
+    }
+    return DataQualityMetrics(
+        freshness_seconds=freshness,
+        rows_yesterday=rows,
+        null_rate=null_rate,
+        schema_missing=schema_missing,
+    )
